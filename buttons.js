@@ -1,11 +1,11 @@
-export const backEnd = "Back End";
-export const backEndAction = "backend";
+module.exports.backEnd = "Back End";
+module.exports.backEndAction = "backend";
 
-export const frontEnd = "Front End";
-export const frontEndAction = "frontend";
+module.exports.frontEnd = "Front End";
+module.exports.frontEndAction = "frontend";
 
-export const mobile = "Mobile";
-export const mobileAction = "mobile";
+module.exports.mobile = "Mobile";
+module.exports.mobileAction = "mobile";
 
-export const just = "Just a Bug";
-export const justAction = "just";
+module.exports.just = "Just a Bug";
+module.exports.justAction = "just";
