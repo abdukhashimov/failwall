@@ -1,5 +1,6 @@
 require("dotenv").config();
 const { Telegraf, Markup } = require("telegraf");
+const { messageStart } = require("./messages");
 
 const {
   backEnd,
@@ -19,10 +20,19 @@ const inlineMessageKeyBoard = Markup.inlineKeyboard([
   Markup.callbackButton(frontEnd, frontEndAction),
   Markup.callbackButton(mobile, mobileAction),
   Markup.callbackButton(just, justAction),
-]);
+]).extra();
 
 bot.start((ctx) => {
-  ctx.telegram.sendMessage(ctx.from.id, inlineMessageKeyBoard);
+  ctx.telegram.sendMessage(ctx.from.id, messageStart, inlineMessageKeyBoard);
+});
+
+bot.action(backEndAction, (ctx) => {
+  ctx.editMessageText("Back End in Action");
+  ctx.telegram.sendMessage(
+    ctx.from.id,
+    "I will be asking some questions about your recent failure"
+  );
+  ctx.telegram.sendMessage(ctx.from.id, "1. What failure you had (max: 100 words)")
 });
 
 bot.launch();
