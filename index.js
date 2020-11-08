@@ -30,7 +30,7 @@ bot.action(backEndAction, (ctx) => {
   ctx.editMessageText("Back End in Action");
   ctx.telegram.sendMessage(
     ctx.from.id,
-    "I will be asking some questions about your recent failure"
+    "I will be asking some questions about your recent failure\nQuestions: \n1. What failure you had (for a title)?\n2. What tool were you using?\n3. What happened?\n4. Conclusion"
   );
   ctx.telegram.sendMessage(ctx.from.id, "1. What failure you had (max: 100 words)")
 });
