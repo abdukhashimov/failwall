@@ -4,7 +4,7 @@ const { Telegraf } = require("telegraf");
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
 bot.start((ctx) => {
-  ctx.replyWithVideo("./welcome.mp4");
+  ctx.reply("Welcome");
 });
 
 // const mongoUrl =
