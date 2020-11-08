@@ -1,52 +1,69 @@
 require("dotenv").config();
-const { Telegraf, Markup } = require("telegraf");
-const { messageStart } = require("./messages");
+const Telegraf = require("telegraf");
+const Markup = require("telegraf/markup");
+const Stage = require("telegraf/stage");
+const session = require("telegraf/session");
+const WizardScene = require("telegraf/scenes/wizard");
 
-const {
-  backEnd,
-  backEndAction,
-  frontEnd,
-  frontEndAction,
-  mobile,
-  mobileAction,
-  just,
-  justAction,
-} = require("./buttons");
+const loveCalculator = require("./loveCalculator");
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
-const inlineMessageKeyBoard = Markup.inlineKeyboard([
-  Markup.callbackButton(backEnd, backEndAction),
-  Markup.callbackButton(frontEnd, frontEndAction),
-  Markup.callbackButton(mobile, mobileAction),
-  Markup.callbackButton(just, justAction),
-]).extra();
-
 bot.start((ctx) => {
-  ctx.telegram.sendMessage(ctx.from.id, messageStart, inlineMessageKeyBoard);
-});
-
-bot.action(backEndAction, (ctx) => {
-  ctx.editMessageText("Back End in Action");
-  ctx.telegram.sendMessage(
-    ctx.from.id,
-    "I will be asking some questions about your recent failure\nQuestions: \n1. What failure you had (for a title)?\n2. What tool were you using?\n3. What happened?\n4. Conclusion"
+  ctx.reply(
+    `Hello ${ctx.from.first_name}, would you like to know the love compatibility?`,
+    Markup.inlineKeyboard([
+      Markup.callbackButton("Love Calculate", "LOVE_CALCULATE"),
+    ]).extra()
   );
-  ctx.telegram.sendMessage(ctx.from.id, "1. What failure you had (max: 100 words)")
 });
 
-bot.launch();
-// const mongoUrl =
-//   "mongodb+srv://madiyor:<password>@cluster0.jpxt2.gcp.mongodb.net/<dbname>?retryWrites=true&w=majority";
+// love calculator two-step wizard
+const loveCalculate = new WizardScene(
+  "love_calculate",
+  (ctx) => {
+    ctx.reply("Please, enter your name"); // enter your name
+    return ctx.wizard.next();
+  },
+  (ctx) => {
+    ctx.wizard.state.yourName = ctx.message.text; // store yourName in the state to share data between middlewares
+    ctx.reply(
+      "Enter the name of your partner/lover/crush to find Love compatibility & chances of successful love relationship."
+    );
+    return ctx.wizard.next();
+  },
+  (ctx) => {
+    const partnerName = ctx.message.text; // retrieve partner name from the message which user entered
+    const yourName = ctx.wizard.state.yourName; // retrieve your name from state
+    loveCalculator
+      .getPercentage(yourName, partnerName)
+      .then((res) => {
+        const { fname, sname, percentage, result } = res.data;
+        ctx.reply(
+          `${fname} + ${sname} = ${percentage}% \n ${
+            percentage > 50 ? "☺️" : "😢"
+          } ${result}`,
+          Markup.inlineKeyboard([
+            Markup.callbackButton(
+              "♥️ calculate Another Relationship",
+              "LOVE_CALCULATE"
+            ),
+          ]).extra()
+        );
+      })
+      .catch((err) =>
+        ctx.reply(
+          err.message,
+          Markup.inlineKeyboard([
+            Markup.callbackButton("calculate again", "LOVE_CALCULATE"),
+          ]).extra()
+        )
+      );
+    return ctx.scene.leave();
+  }
+);
 
-/**
- * 1. BackEndBug
- * 2. FrontEndBug
- * 3. Just a Bug
- *
- * 1. The tool name you were using
- * 2. Failure you had
- * 3. What did you learn?
- *
- * 1. First Name Lastname
- */
+const stage = new Stage([loveCalculate], { default: "love_calculate" }); // Scene registration
+bot.use(session());
+bot.use(stage.middleware());
+bot.launch();
